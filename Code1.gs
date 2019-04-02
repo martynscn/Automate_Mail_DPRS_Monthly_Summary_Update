@@ -1,54 +1,6 @@
-function sendEmails() {
-  var sheet = SpreadsheetApp.getActiveSheet();
-  var startRow = 2; // First row of data to process
-  var numRows = 2;  // Number of rows to process
-  // Fetch the range of cells A2:B3
-  var dataRange = sheet.getRange(startRow, 1, numRows, 2)
-  // Fetch values for each row in the Range.
-  var data = dataRange.getValues();
-  for (i in data) {
-    var row = data[i];
-    var emailAddress = row[0]; // First column
-    var message = row[1];      // Second column
-    var subject = "Sending emails from a Spreadsheet";
-    MailApp.sendEmail(emailAddress, subject, message);
-  }
-  
-}
-
-
-
-
 
 // This constant is written in column C for rows for which an email has been sent successfully
 var EMAIL_SENT = "EMAIL SENT";
-
-function sendEmails2() {
-  var sheet = SpreadsheetApp.getActiveSheet();
-  var startRow = 2; // First row of data to process
-  var numRows = 2;  // Number of rows to process
-  // Fetch the range of cells A2:C3
-  var dataRange = sheet.getRange(startRow, 1, numRows, 3)
-  // Fetch values for each row in the Range.
-  var data = dataRange.getValues();
-  for (var i = 0; i < data.length; ++i) {
-    var row = data[i];
-    var emailAddress = row[0]; // First column
-    var message = row[1];      // Second column
-    var emailSent = row[2];    // Third column
-    if (emailSent != EMAIL_SENT) {  // Prevents sending duplicates
-      var subject = "Sending emails from a Spreadsheet";
-      MailApp.sendEmail(emailAddress, subject, message);
-      sheet.getRange(startRow +i, 3).setValue(EMAIL_SENT);
-      // Make sure the cell is updated right away in case the script is interrupted
-      SpreadsheetApp.flush();
-    }
-  }
-  // Get remaining email quota
-  var emailQuotaRemaining = MailApp.getRemainingDailyQuota();
-  Logger.log("Remaining email quota: " + emailQuotaRemaining);
-  
-}
 
 // Third function
 
@@ -139,6 +91,12 @@ function sendEmails4() {
 // Fifth function - user defined subject and sender name
 function sendEmails5() {
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Report page');
+  var moreParameters = sheet.getRange('b4:d4').getValues();
+  var testMail = moreParameters[0][0];
+  
+  
+  
+  
   var startRow = 6; // First row of data to process
   var col = sheet.getRange('B' + startRow + ':B').getValues();
   var numRows = col.filter(String).length;
@@ -152,31 +110,52 @@ function sendEmails5() {
   var dataRange = sheet.getRange(startRow, 1, numRows, 3);
   // Fetch values for each row in the Range.
   var data = dataRange.getValues();
-  for (var i = 0; i < data.length; ++i) {
-    var row = data[i];
-    var emailAddress = row[0]; // First column
+  
+  if(testMail == 'Yes') {
+    var testMailContentNo = moreParameters[0][1];
+    var emailAddress = moreParameters[0][2];
+    var row = data[testMailContentNo - 1];
     var message = row[1].toString();      // Second column
     var plainMessage = message.replace(/\<br\/\>/gi,'\n').replace(/(<([^>]+)>)/ig,"");
-    var emailSent = row[2];    // Third column
     
-    if (emailSent != EMAIL_SENT) {  // Prevents sending duplicates
-
-      Logger.log("Email Address: " + emailAddress);
-      var subject = sheet.getRange(1, 2).getValue();
-      MailApp.sendEmail(emailAddress, subject,plainMessage,
-                        {name: sheet.getRange(2, 2).getValue(),
-                         htmlBody:message
-//                         ,cc: cc
-                        }
-                       );
-      sheet.getRange(startRow +i, 3).setValue(EMAIL_SENT);
-      // Make sure the cell is updated right away in case the script is interrupted
-      SpreadsheetApp.flush();
+    var subject = 'Mail for Review: Summary of Capacity building report';
+    MailApp.sendEmail(emailAddress, subject,plainMessage,
+                      {name: sheet.getRange(2, 2).getValue(),
+                       htmlBody:message
+                      }
+                     );
       emailaddressSent.push(emailAddress);
       emailMessagesSent.push(plainMessage);
       emailSentTime.push(new Date());
+  } else if(testMail == 'No') {
+      for (var i = 0; i < data.length; ++i) {
+      var row = data[i];
+      var emailAddress = row[0]; // First column
+      var message = row[1].toString();      // Second column
+      var plainMessage = message.replace(/\<br\/\>/gi,'\n').replace(/(<([^>]+)>)/ig,"");
+      var emailSent = row[2];    // Third column
+      
+      if (emailSent != EMAIL_SENT) {  // Prevents sending duplicates
+  
+        Logger.log("Email Address: " + emailAddress);
+        var subject = sheet.getRange(1, 2).getValue();
+        MailApp.sendEmail(emailAddress, subject,plainMessage,
+                          {name: sheet.getRange(2, 2).getValue(),
+                           htmlBody:message
+  //                         ,cc: cc
+                          }
+                         );
+        sheet.getRange(startRow +i, 3).setValue(EMAIL_SENT);
+        // Make sure the cell is updated right away in case the script is interrupted
+        SpreadsheetApp.flush();
+        emailaddressSent.push(emailAddress);
+        emailMessagesSent.push(plainMessage);
+        emailSentTime.push(new Date());
+      }
     }
   }
+  
+  
   // Get remaining email quota
   var emailQuotaRemaining = MailApp.getRemainingDailyQuota();
   Logger.log("Remaining email quota: " + emailQuotaRemaining);
@@ -194,9 +173,6 @@ function testFilterData() {
   var startRow = 6; // First row of data to process
   var col = sheet.getRange('B' + startRow + ':B').getValues();
   var numRows = col.filter(String).length;
- 
-//  var numRows = (sheet.getLastRow() - startRow + 1);
-
   Logger.log(length);
 }
 
